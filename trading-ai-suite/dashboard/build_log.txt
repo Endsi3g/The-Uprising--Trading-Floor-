@@ -1,0 +1,22 @@
+
+> dashboard@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 17.2s
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/charts/TradingChart.tsx:58:37
+Type error: Property 'addCandlestickSeries' does not exist on type 'IChartApi'.
+
+  56 |     chartRef.current = chart;
+  57 |
+> 58 |     const candlestickSeries = chart.addCandlestickSeries({
+     |                                     ^
+  59 |       upColor: '#089981',
+  60 |       downColor: '#f23645',
+  61 |       borderVisible: false,
+Next.js build worker exited with code: 1 and signal: null

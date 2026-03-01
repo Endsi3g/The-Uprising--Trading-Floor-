@@ -1,0 +1,64 @@
+name: CI — Lint, Build & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python-lint:
+    name: 🐍 Python Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint Python files
+        run: ruff check ai_service.py broker_hub.py news_hub.py risk_engine.py ai_sentinel.py test_system.py
+        working-directory: trading-ai-suite
+
+      - name: Check Python syntax
+        run: |
+          python -m py_compile ai_service.py
+          python -m py_compile broker_hub.py
+          python -m py_compile news_hub.py
+          python -m py_compile risk_engine.py
+          python -m py_compile ai_sentinel.py
+          python -m py_compile test_system.py
+        working-directory: trading-ai-suite
+
+  dashboard-build:
+    name: 🖥️ Dashboard Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: trading-ai-suite/dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: trading-ai-suite/dashboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Build dashboard
+        run: npm run build
+
+  docker-validate:
+    name: 🐳 Docker Compose Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: docker compose config --quiet
+        working-directory: trading-ai-suite

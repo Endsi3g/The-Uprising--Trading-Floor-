@@ -1,0 +1,164 @@
+services:
+  hummingbot:
+    image: hummingbot/hummingbot:latest
+    container_name: hummingbot
+    volumes:
+      - ./hummingbot-data/conf:/home/hummingbot/conf
+      - ./hummingbot-data/logs:/home/hummingbot/logs
+      - ./hummingbot-data/data:/home/hummingbot/data
+      - ./hummingbot-data/scripts:/home/hummingbot/scripts
+      - ./hummingbot-data/certs:/home/hummingbot/certs
+    ports:
+      - "8000:8000"
+    environment:
+      - CONFIG_PASSWORD=${HB_PASSWORD:-password}
+    stdin_open: true
+    tty: true
+    restart: always
+    networks:
+      - trading-net
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - ./ollama-data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - trading-net
+
+  # 100% Free Broker Layer (CCXT)
+  broker-hub:
+    image: python:3.11-slim
+    container_name: broker-hub
+    volumes:
+      - ./broker_hub.py:/app/broker_hub.py
+      - ./requirements-broker.txt:/app/requirements.txt
+    working_dir: /app
+    environment:
+      - BINANCE_API_KEY=${BINANCE_API_KEY}
+      - BINANCE_API_SECRET=${BINANCE_API_SECRET}
+      - KUCOIN_API_KEY=${KUCOIN_API_KEY}
+      - KUCOIN_API_SECRET=${KUCOIN_API_SECRET}
+      - KUCOIN_PASSPHRASE=${KUCOIN_PASSPHRASE}
+      - BYBIT_API_KEY=${BYBIT_API_KEY}
+      - BYBIT_API_SECRET=${BYBIT_API_SECRET}
+    command: >
+      sh -c "pip install -r requirements.txt && uvicorn broker_hub:app --host 0.0.0.0 --port 8001"
+    ports:
+      - "8001:8001"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - trading-net
+
+  # 100% Free News Layer (Scraping)
+  news-hub:
+    image: python:3.11-slim
+    container_name: news-hub
+    volumes:
+      - ./news_hub.py:/app/news_hub.py
+      - ./requirements-news.txt:/app/requirements.txt
+    working_dir: /app
+    command: >
+      sh -c "pip install -r requirements.txt && uvicorn news_hub:app --host 0.0.0.0 --port 8002"
+    ports:
+      - "8002:8002"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - trading-net
+
+  # AI Decision Engine (Ollama Wrapper)
+  ai-service:
+    image: python:3.11-slim
+    container_name: ai-service
+    volumes:
+      - ./ai_service.py:/app/ai_service.py
+      - ./requirements-ai.txt:/app/requirements.txt
+    working_dir: /app
+    environment:
+      - OLLAMA_URL=http://ollama:11434/api/generate
+    command: >
+      sh -c "pip install -r requirements.txt && uvicorn ai_service:app --host 0.0.0.0 --port 8003"
+    ports:
+      - "8003:8003"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - trading-net
+
+  # Risk Management Engine
+  risk-engine:
+    image: python:3.11-slim
+    container_name: risk-engine
+    volumes:
+      - ./risk_engine.py:/app/risk_engine.py
+      - ./requirements-risk.txt:/app/requirements.txt
+    working_dir: /app
+    environment:
+      - INITIAL_CAPITAL=${INITIAL_CAPITAL:-500.0}
+    command: >
+      sh -c "pip install -r requirements.txt && uvicorn risk_engine:app --host 0.0.0.0 --port 8004"
+    ports:
+      - "8004:8004"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - trading-net
+
+  # Freqtrade Integration
+  freqtrade:
+    image: freqtradeorg/freqtrade:stable
+    container_name: freqtrade
+    volumes:
+      - ./freqtrade/user_data:/freqtrade/user_data
+    ports:
+      - "8081:8080"
+    command: >
+      trade --config user_data/config.json --strategy SampleStrategy
+    restart: always
+    networks:
+      - trading-net
+
+  # OctoBot Integration
+  octobot:
+    image: drakkarsoftware/octobot:latest
+    container_name: octobot
+    volumes:
+      - ./octobot/user_data:/octobot/user_data
+    ports:
+      - "5001:5001"
+    restart: always
+    networks:
+      - trading-net
+
+networks:
+  trading-net:
+    driver: bridge

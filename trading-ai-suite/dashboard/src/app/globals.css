@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --background: #131722;
+  --foreground: #d1d4dc;
+  --card: #1e222d;
+  --card-foreground: #d1d4dc;
+  --popover: #1e222d;
+  --popover-foreground: #d1d4dc;
+  --primary: #2962ff;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2e39;
+  --secondary-foreground: #d1d4dc;
+  --muted: #2a2e39;
+  --muted-foreground: #787b86;
+  --accent: #2962ff;
+  --accent-foreground: #ffffff;
+  --destructive: #f23645;
+  --destructive-foreground: #ffffff;
+  --border: #2a2e39;
+  --input: #2a2e39;
+  --ring: #2962ff;
+  --success: #089981;
+  --warning: #f57c00;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-destructive: var(--destructive);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(30, 34, 45, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .tv-grid {
+    display: grid;
+    grid-template-columns: 60px 1fr 300px;
+    grid-template-rows: 48px 1fr 32px;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+}
