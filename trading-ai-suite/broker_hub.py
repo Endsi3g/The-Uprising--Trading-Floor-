@@ -1,13 +1,63 @@
 import os
+import logging
 import asyncio
+import docker
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import ccxt.async_support as ccxt
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("BrokerHub")
+
 exchanges = {}
 
+class TradingBotsManager:
+    def __init__(self):
+        try:
+            self.client = docker.from_env()
+        except Exception as e:
+            logger.warning(f"Could not connect to Docker socket: {e}")
+            self.client = None
+            
+    def get_status(self):
+        if not self.client: return {"status": "Docker disconnected", "bots": []}
+        
+        bots = []
+        target_names = ["hummingbot", "freqtrade", "octobot"]
+        
+        try:
+            containers = self.client.containers.list(all=True)
+            for c in containers:
+                if c.name in target_names:
+                    bots.append({
+                        "id": c.name,
+                        "name": c.name.capitalize(),
+                        "status": "Running" if c.status == "running" else "Stopped",
+                        "uptime": c.attrs.get("State", {}).get("StartedAt", "0s") if c.status == "running" else "0s"
+                    })
+        except Exception as e:
+            logger.error(f"Error reading docker containers: {e}")
+            
+        return {"status": "ok", "bots": bots}
+        
+    def control_bot(self, bot_id: str, action: str):
+        if not self.client: return False, "Docker disconnected"
+        try:
+            container = self.client.containers.get(bot_id)
+            if action == 'start':
+                container.start()
+            elif action == 'stop':
+                container.stop()
+            elif action == 'restart':
+                container.restart()
+            return True, f"{bot_id} {action}ed successfully"
+        except Exception as e:
+            return False, str(e)
+
+bot_manager = TradingBotsManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -166,3 +216,19 @@ async def get_orders(symbol: str, exchange: str):
         return orders
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/bots")
+async def get_bots_status():
+    """Returns the statuses of the trading engine Docker containers."""
+    return bot_manager.get_status()
+
+@app.post("/bots/{bot_id}/{action}")
+async def control_bot(bot_id: str, action: str):
+    """Start, stop, or restart a specific Bot Engine."""
+    if action not in ["start", "stop", "restart"]:
+        raise HTTPException(status_code=400, detail="Invalid action")
+    
+    success, msg = bot_manager.control_bot(bot_id, action)
+    if not success:
+        raise HTTPException(status_code=500, detail=msg)
+    return {"status": "success", "message": msg}

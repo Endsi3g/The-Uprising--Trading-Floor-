@@ -1,0 +1,15 @@
+# Cursor Rules for The Uprising Trading Floor
+
+# Mandatory Reading
+BEFORE any action, read: file://AI_MANDATORY_INSTRUCTIONS.md
+
+# Skill Enforcement
+Always reference and apply patterns from the `/skills` directory.
+
+# Commit Strategy
+Commit and push after every completed phase in `task.md`.
+
+# Dashboad Principles
+- 12-Year-Old Simple UX.
+- Real-time data integration via CCXT/FastAPI.
+- Glassmorphism & Modern Dark Theme.

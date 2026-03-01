@@ -26,25 +26,29 @@ export default function RootLayout({
           <header className="col-span-3 border-b border-[#2a2e39] bg-[#1e222d] flex items-center px-4 z-20">
             <div className="font-bold text-lg text-[#2962ff] mr-8 tracking-tighter">AI SUITE</div>
             <div className="flex gap-4 text-[11px] font-bold text-[#787b86] uppercase tracking-wider">
-              <span className="cursor-pointer hover:text-white transition-colors border-b-2 border-[#2962ff] pb-3 pt-3">Chart</span>
-              <span className="cursor-pointer hover:text-white transition-colors pb-3 pt-3">Watchlist</span>
+              {/* Note: The store will be imported in a client wrapper later, but we will make these links static in layout for now and put toggles inside page.tsx or a separate component */}
+              <span className="cursor-pointer hover:text-white transition-colors border-b-2 border-[#2962ff] pb-3 pt-3">Dashboard</span>
               <span className="cursor-pointer hover:text-white transition-colors pb-3 pt-3">Strategy Finder</span>
             </div>
+            
             <div className="ml-auto flex items-center gap-4">
-               <button className="bg-[#2962ff] hover:bg-[#2962ff]/80 text-white text-[10px] font-bold px-3 py-1 rounded transition-colors uppercase tracking-widest">Connect Wallet</button>
+               <span className="text-[10px] text-[#787b86] font-bold tracking-widest mr-2 border-r border-[#2a2e39] pr-4">
+                  PRO MODE
+               </span>
+               <button className="bg-[#2962ff] hover:bg-[#2962ff]/80 text-white text-[10px] font-bold px-3 py-1 rounded transition-colors uppercase tracking-widest shadow-[0_0_10px_rgba(41,98,255,0.3)]">Deploy All</button>
             </div>
           </header>
 
           {/* Left Icon Sidebar */}
           <aside className="border-r border-[#2a2e39] bg-[#1e222d] flex flex-col items-center py-4 gap-6 z-20">
-             <div className="p-2 text-[#2962ff] cursor-pointer transition-colors border-l-2 border-[#2962ff] bg-[#2962ff]/5">
+             <div className="p-2 text-[#2962ff] cursor-pointer transition-colors border-l-2 border-[#2962ff] bg-[#2962ff]/5" title="Chart Grid">
                📊
              </div>
-             <div className="p-2 text-[#787b86] cursor-pointer hover:text-[#2962ff] transition-colors">
+             <div className="p-2 text-[#787b86] cursor-pointer hover:text-[#2962ff] transition-colors" title="AI Agents">
                🤖
              </div>
-             <div className="p-2 text-[#787b86] cursor-pointer hover:text-[#2962ff] transition-colors">
-               📰
+             <div className="p-2 text-[#787b86] cursor-pointer hover:text-[#2962ff] transition-colors" title="Settings">
+               ⚙️
              </div>
           </aside>
 

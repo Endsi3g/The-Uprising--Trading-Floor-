@@ -95,6 +95,33 @@ export async function fetchBrokerHealth(): Promise<HealthStatus | null> {
   return apiFetch(`${API_CONFIG.brokerHub}/health`);
 }
 
+export interface BotStatus {
+  id: string;
+  name: string;
+  status: string;
+  uptime: string;
+}
+
+export interface BotsResponse {
+  status: string;
+  bots: BotStatus[];
+}
+
+export interface ControlResponse {
+  status: string;
+  message: string;
+}
+
+export async function fetchBotsStatus(): Promise<BotsResponse | null> {
+  return apiFetch(`${API_CONFIG.brokerHub}/bots`);
+}
+
+export async function controlBot(botId: string, action: string): Promise<ControlResponse | null> {
+  return apiFetch(`${API_CONFIG.brokerHub}/bots/${botId}/${action}`, {
+    method: 'POST',
+  });
+}
+
 // --- News Hub ---
 export async function fetchNews(symbol: string = 'BTC', limit: number = 10): Promise<NewsItem[] | null> {
   return apiFetch(`${API_CONFIG.newsHub}/news?symbol=${symbol}&limit=${limit}`);
