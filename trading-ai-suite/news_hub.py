@@ -148,9 +148,7 @@ def calculate_weighted_sentiment(text: str) -> float:
 @app.get("/sentiment")
 async def get_sentiment_summary(symbol: str) -> Dict:
     """Combine les news pour donner un score de sentiment global."""
-    news = await get_crypto_news(symbol, limit=10)
-
-    if len(news) == 1 and "Aucune news" in news[0].get("title", ""):
+    if not news:
         return {"symbol": symbol, "sentiment": "Neutral", "score": 0.5, "news_count": 0, "sources": []}
 
     avg_sentiment = sum(item.get("sentiment", 0) for item in news) / len(news)

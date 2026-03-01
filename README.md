@@ -43,6 +43,18 @@ The dashboard provides a "Command Center" view:
 - `Ollama` (Running DeepSeek or Llama3)
 
 ### Installation
+#### Windows (PowerShell)
+1. Clone the repository:
+   ```powershell
+   git clone https://github.com/Endsi3g/The-Uprising--Trading-Floor-.git
+   cd hummingbot
+   ```
+2. Set up the environment:
+   ```powershell
+   .\bin\install.ps1
+   ```
+
+#### macOS / Linux (Bash)
 1. Clone the repository:
    ```bash
    git clone https://github.com/Endsi3g/The-Uprising--Trading-Floor-.git
@@ -52,10 +64,19 @@ The dashboard provides a "Command Center" view:
    ```bash
    ./bin/install
    ```
-3. Start the system:
-   ```bash
-   ./bin/start
-   ```
+
+### Start the system
+#### Windows (PowerShell)
+```powershell
+conda activate hummingbot
+.\bin\start.ps1
+```
+
+#### macOS / Linux (Bash)
+```bash
+conda activate hummingbot
+./bin/start
+```
 
 ---
 

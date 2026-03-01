@@ -155,8 +155,8 @@ async def get_ticker(symbol: str, exchange: str):
         ticker = await exchanges[exchange].fetch_ticker(symbol)
         return ticker
     except Exception as e:
-        logger.error(f"Ticker fetch error for {symbol} on {exchange}: {e}")
-        raise HTTPException(status_code=502, detail=f"Exchange connectivity issue: {str(e)}")
+        logger.error(f"Ticker fetch error for {symbol} on {exchange}: {e}", exc_info=True)
+        raise HTTPException(status_code=502, detail="Exchange connectivity issue or exchange unavailable")
 
 
 @app.get("/tickers")

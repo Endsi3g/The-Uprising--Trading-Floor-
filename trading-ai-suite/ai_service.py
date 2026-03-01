@@ -142,10 +142,26 @@ async def analyze_generic(req: GenericAnalysisRequest):
 @app.get("/health")
 async def health_check():
     """Health check — verifie Ollama."""
-    models = await get_available_models()
-    return {
-        "status": "ok" if models else "error",
-        "service": "ai-service",
-        "available_models": models,
-        "mode": "production"
-    }
+    try:
+        models = await get_available_models()
+        if not models:
+            raise HTTPException(status_code=503, detail={
+                "status": "error",
+                "service": "ai-service",
+                "available_models": [],
+                "mode": "production"
+            })
+        return {
+            "status": "ok",
+            "service": "ai-service",
+            "available_models": models,
+            "mode": "production"
+        }
+    except Exception as e:
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=503, detail={
+            "status": "error", 
+            "service": "ai-service", 
+            "error": str(e),
+            "mode": "production"
+        })

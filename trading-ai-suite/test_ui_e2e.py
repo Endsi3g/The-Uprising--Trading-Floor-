@@ -15,9 +15,10 @@ def page():
         context = browser.new_context(viewport={"width": 1440, "height": 900})
         page = context.new_page()
         try:
-            page.goto(BASE_URL, wait_until="networkidle")
-        except:
-            pytest.skip("Dashboard server not reachable at http://localhost:3000")
+            response = page.goto(BASE_URL, wait_until="networkidle")
+            assert response.status == 200, f"Expected 200 OK, got {response.status}"
+        except Exception as e:
+            pytest.skip(f"Dashboard server not reachable: {e}")
         yield page
         browser.close()
 
@@ -34,11 +35,11 @@ def test_charts_rendering(page):
 
 def test_sidebars(page):
     # Watchlist and AI Panels
-    expect(page.get_by_text("WATCHLIST", exact=False).first).to_be_visible()
-    expect(page.get_by_text("AI", exact=False).first).to_be_visible()
+    expect(page.get_by_text("WATCHLIST", exact=True).first).to_be_visible()
+    expect(page.get_by_text("AI INSIGHTS & NEWS", exact=True).first).to_be_visible()
 
 def test_bot_manager(page):
-    expect(page.get_by_text("BOT", exact=False).first).to_be_visible()
+    expect(page.get_by_text("MULTI-ENGINE CONTROL", exact=True).first).to_be_visible()
 
 def test_status_bar(page):
     expect(page.locator("footer")).to_be_visible()

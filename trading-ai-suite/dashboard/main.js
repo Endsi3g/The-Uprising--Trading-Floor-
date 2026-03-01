@@ -54,13 +54,20 @@ function createWindow() {
 
 function startNextServer() {
   return new Promise((resolve, reject) => {
+    let settled = false;
+
+    const settle = (success, error) => {
+      if (settled) return;
+      settled = true;
+      if (success) resolve();
+      else reject(error || new Error('Startup failed'));
+    };
+
     if (isDev) {
-      // In dev mode, assume Next.js dev server is already running
-      resolve();
+      settle(true);
       return;
     }
 
-    // In production, start the Next.js server from the built output
     const nextStart = spawn(
       process.platform === 'win32' ? 'npx.cmd' : 'npx',
       ['next', 'start', '-p', String(PORT)],
@@ -77,7 +84,7 @@ function startNextServer() {
       const output = data.toString();
       console.log(`[Next.js] ${output}`);
       if (output.includes('Ready') || output.includes('started')) {
-        resolve();
+        settle(true);
       }
     });
 
@@ -85,10 +92,12 @@ function startNextServer() {
       console.error(`[Next.js Error] ${data.toString()}`);
     });
 
-    nextStart.on('error', reject);
+    nextStart.on('error', (err) => settle(false, err));
+    nextStart.on('exit', (code) => {
+      if (code !== null && code !== 0) settle(false, new Error(`Exit code ${code}`));
+    });
 
-    // Fallback: resolve after 5 seconds if no "Ready" message
-    setTimeout(resolve, 5000);
+    setTimeout(() => settle(false, new Error('Timeout')), 10000);
   });
 }
 
@@ -103,10 +112,15 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('before-quit', () => {
   if (nextProcess) {
     nextProcess.kill();
   }
-  app.quit();
 });
 
 app.on('activate', () => {
