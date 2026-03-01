@@ -25,8 +25,7 @@
       "output": "dist-electron"
     },
     "win": {
-      "target": "nsis",
-      "icon": "public/favicon.ico"
+      "target": "nsis"
     },
     "mac": {
       "target": "dmg",
@@ -38,8 +37,7 @@
     "nsis": {
       "oneClick": false,
       "perMachine": true,
-      "allowToChangeInstallationDirectory": true,
-      "installerIcon": "public/favicon.ico"
+      "allowToChangeInstallationDirectory": true
     }
   },
   "dependencies": {

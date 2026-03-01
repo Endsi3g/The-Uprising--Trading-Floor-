@@ -17,6 +17,7 @@ hummingbot-data/
 .next/
 out/
 dist/
+dist-electron/
 build/
 
 # IDE

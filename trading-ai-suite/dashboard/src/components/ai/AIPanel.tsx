@@ -17,7 +17,7 @@ export default function AIPanel() {
         fetchNews("BTC", 5),
         fetchSentiment("BTC"),
         fetchAIHealth(),
-      ]);
+      ]) as [NewsItem[] | null, SentimentData | null, HealthStatus | null];
 
       if (newsData && newsData.length > 0 && !newsData[0]?.title?.includes("Aucune news")) {
         setNews(newsData);

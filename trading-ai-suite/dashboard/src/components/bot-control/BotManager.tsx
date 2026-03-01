@@ -20,7 +20,10 @@ export default function BotManager() {
   }, []);
 
   useEffect(() => {
-    loadBots();
+    const init = async () => {
+      await loadBots();
+    };
+    init();
     const interval = setInterval(loadBots, 10000);
     return () => clearInterval(interval);
   }, [loadBots]);

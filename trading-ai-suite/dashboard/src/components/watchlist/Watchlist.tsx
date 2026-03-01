@@ -2,7 +2,7 @@
 
 import { cn } from "@/utils/cn";
 import { useEffect, useState } from "react";
-import { fetchTickers, TickerData } from "@/services/api";
+import { fetchTickers } from "@/services/api";
 
 interface WatchlistItem {
   symbol: string;
@@ -37,8 +37,6 @@ export default function Watchlist() {
   const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-
     async function loadTickers() {
       const data = await fetchTickers("binance");
       if (data) {
@@ -59,7 +57,7 @@ export default function Watchlist() {
     }
 
     loadTickers();
-    interval = setInterval(loadTickers, 15000); // Refresh every 15s
+    const interval = setInterval(loadTickers, 15000); // Refresh every 15s
     return () => clearInterval(interval);
   }, []);
 

@@ -2,12 +2,11 @@
 
 import TradingChart from "@/components/charts/TradingChart";
 import { useDashboardStore } from "@/store/dashboardStore";
-import LayoutControl from "@/components/layout/LayoutControl";
 
 export default function Home() {
-  const { gridLayout } = useDashboardStore();
+  const { chartLayout } = useDashboardStore();
 
-  if (gridLayout === '1x1') {
+  if (chartLayout === '1x1') {
     return (
       <div className="w-full h-full bg-[#131722] p-1 relative">
          <TradingChart symbol="BTC/USDT" containerId="chart_main" />

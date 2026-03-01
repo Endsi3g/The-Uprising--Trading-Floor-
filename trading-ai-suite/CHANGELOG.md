@@ -29,10 +29,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.4.0] — 2026-03-01
+
+### Added (v0.4.0)
+
+- **Electron Desktop App**: Native desktop wrapper with `electron-serve`, dark title bar, and 1440×900 default window.
+- **Multi-Platform Builds**: `electron-builder` config producing `.exe` (NSIS), `.dmg`, and `.AppImage` installers.
+- **Playwright E2E Tests**: `test_dashboard_e2e.py` with 10 tests covering page load, layout, charts, watchlist, AI panel, bot manager, and status bar.
+- **Dashboard npm Scripts**: `electron-dev` and `electron-build` for one-command desktop packaging.
+
+### Changed (v0.4.0)
+
+- **`.env.example`**: Now documents all 15 environment variables across all services (Alert Hub, Risk Engine, Dashboard API URLs).
+- **`next.config.ts`**: Switched to static export mode (`output: "export"`) for Electron compatibility.
+- **`package.json`**: Added project metadata (`author`, `description`), Electron entry point, and full builder config.
+
+---
+
 ## [0.3.0] — 2026-03-01
 
-
-### Added
+### Added (v0.3.0)
 
 - **Alert Hub Refinement**: Robust background broadcasting to Discord/Telegram via FastAPI `BackgroundTasks`.
 - **Reporting Automation**: `performance_recap.py` script for AI-generated weekly PnL reports.
@@ -40,12 +56,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Master Test Suite**: Comprehensive E2E system check (`master_test_suite.py`) validating the full flow.
 - **Release Automation**: `release_manager.py` for one-click versioning and GitHub release creation.
 
-### Changed
+### Changed (v0.3.0)
 
 - **Risk Engine Alerts**: Now sends proactive warnings on single trade stop-losses and critical alerts on consecutive losses.
 - **Improved Logging**: Added structured logging and timestamp formats across all suite services.
 
-### Fixed
+### Fixed (v0.3.0)
 
 - **Connectivity Paths**: Standardized service discovery URLs using internal Docker networking.
 
@@ -53,7 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.2.0] — 2026-03-01
 
-### Added
+### Added (v0.2.0)
 
 - **Risk Engine API**: Full FastAPI wrapper exposing `/risk/status`, `/risk/check`, `/risk/reset`, `/risk/update-capital`
 - **CORS Middleware**: All 4 backend services now allow cross-origin requests from the dashboard
@@ -71,7 +87,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Dashboard API Service**: Centralized type-safe API client (`api.ts`) for all backends
 - **BotManager in Layout**: Component is now actually rendered in the dashboard layout
 
-### Fixed
+### Fixed (v0.2.0)
 
 - **`ai_service.py`**: `check_model_availability()` was undefined — caused health endpoint crash
 - **`ai_sentinel.py`**: `__main__` called non-existent `analyze_market()` — now calls `unified_analysis()`
@@ -79,7 +95,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Docker Compose**: Removed deprecated `version: "3.9"` key — not needed in modern Docker
 - **Ollama URL Parsing**: Fixed `/api/generate` → `/api/tags` URL construction for model listing
 
-### Changed
+### Changed (v0.2.0)
+
 - **AI Service**: Added model name to response body for transparency
 - **Sentiment Engine**: Switched from binary (-0.8/0/0.8) to continuous weighted scoring (-1.0 to 1.0)
 - **Risk Engine**: Added trade history tracking (last 10 trades stored in memory)
@@ -90,7 +107,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.1.0] — 2026-02-28
 
-### Added
+### Added (v0.1.0)
 - **BrokerHub**: Unified CCXT layer via FastAPI (Binance, KuCoin, Bybit) — `/balances`, `/ticker`, `/order`, `/orders`
 - **NewsHub**: CoinTelegraph scraper with basic sentiment analysis — `/news`, `/sentiment`
 - **AI Service**: Ollama wrapper with DeepSeek-R1 primary + dynamic fallback — `/ai/summary`

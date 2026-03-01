@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { fetchAIHealth } from "@/services/api";
 
 export default function Navbar() {
-  const { gridLayout, setGridLayout } = useDashboardStore();
+  const { chartLayout, setChartLayout } = useDashboardStore();
   const [isHealthOk, setIsHealthOk] = useState(true);
 
   useEffect(() => {
@@ -41,12 +41,12 @@ export default function Navbar() {
         {/* Layout Control Integrated in Navbar for 12-Year-Old Simplicity */}
         <div className="flex items-center bg-[#131722] rounded p-0.5 border border-[#2a2e39] mr-2">
            <button 
-             onClick={() => setGridLayout("1x1")}
-             className={cn("px-2 py-1 text-[10px] rounded transition-all font-bold", gridLayout === "1x1" ? "bg-[#2962ff] text-white shadow-lg" : "text-[#787b86] hover:text-white")}
+             onClick={() => setChartLayout("1x1")}
+             className={cn("px-2 py-1 text-[10px] rounded transition-all font-bold", chartLayout === "1x1" ? "bg-[#2962ff] text-white shadow-lg" : "text-[#787b86] hover:text-white")}
            >1x1</button>
            <button 
-             onClick={() => setGridLayout("2x2")}
-             className={cn("px-2 py-1 text-[10px] rounded transition-all font-bold", gridLayout === "2x2" ? "bg-[#2962ff] text-white shadow-lg" : "text-[#787b86] hover:text-white")}
+             onClick={() => setChartLayout("2x2")}
+             className={cn("px-2 py-1 text-[10px] rounded transition-all font-bold", chartLayout === "2x2" ? "bg-[#2962ff] text-white shadow-lg" : "text-[#787b86] hover:text-white")}
            >2x2</button>
         </div>
 
