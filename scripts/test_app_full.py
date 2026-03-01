@@ -64,12 +64,16 @@ async def run_live_service_check():
             stderr=asyncio.subprocess.PIPE
         )
         stdout, stderr = await process.communicate()
-    try:
-        print(stdout.decode('utf-8'))
-    except UnicodeDecodeError:
-        print(stdout.decode('cp1252', errors='replace'))
+        try:
+            print(stdout.decode('utf-8'))
+        except UnicodeDecodeError:
+            print(stdout.decode('cp1252', errors='replace'))
+            
         if process.returncode != 0:
-            print(f"Error: {stderr.decode()}")
+            try:
+                print(f"Error: {stderr.decode('utf-8')}")
+            except UnicodeDecodeError:
+                print(f"Error: {stderr.decode('cp1252', errors='replace')}")
             return False
         return True
     return False
@@ -89,8 +93,8 @@ if __name__ == "__main__":
     service_ok = asyncio.run(run_live_service_check())
     
     if result.wasSuccessful() and service_ok:
-        print("\n✅ ALL INTEGRITY CHECKS PASSED")
+        print("\nALL INTEGRITY CHECKS PASSED")
         sys.exit(0)
     else:
-        print("\n❌ SOME CHECKS FAILED")
+        print("\nSOME CHECKS FAILED")
         sys.exit(1)

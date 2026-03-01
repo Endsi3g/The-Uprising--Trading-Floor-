@@ -82,9 +82,9 @@ async def main():
 
     print("\n====================================")
     if all_passed:
-        print("✅ SUCCESS: ALL SYSTEMS GO — READY FOR PRODUCTION")
+        print("SUCCESS: ALL SYSTEMS GO - READY FOR PRODUCTION")
     else:
-        print("⚠️ WARNING: ERRORS DETECTED — PLEASE FIX FAILING SERVICES")
+        print("WARNING: ERRORS DETECTED - PLEASE FIX FAILING SERVICES")
 
     print(f"\nTotal: {sum(1 for _, ok, _, _ in results if ok)}/{len(results)} services operational")
     print("====================================")
@@ -93,9 +93,9 @@ async def main():
     try:
         with open("test_results.json", "w") as f:
             json.dump(report, f, indent=2, default=str)
-        print(f"\n📄 Report saved to test_results.json")
+        print("\nReport saved to test_results.json")
     except Exception as e:
-        print(f"\n⚠️ Could not write report: {e}")
+        print(f"\nCould not write report: {e}")
 
     sys.exit(0 if all_passed else 1)
 

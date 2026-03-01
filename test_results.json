@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-03-01T07:22:35.712817",
+  "mode": "mock",
+  "services": {
+    "Ollama (DeepSeek/Llama)": {
+      "status": "ok",
+      "message": "MOCK \u2014 Skipped (syntax-only validation)",
+      "data": {}
+    },
+    "BrokerHub (CCXT)": {
+      "status": "ok",
+      "message": "MOCK \u2014 Skipped (syntax-only validation)",
+      "data": {}
+    },
+    "NewsHub (Scraping)": {
+      "status": "ok",
+      "message": "MOCK \u2014 Skipped (syntax-only validation)",
+      "data": {}
+    },
+    "AI Service (FastAPI)": {
+      "status": "ok",
+      "message": "MOCK \u2014 Skipped (syntax-only validation)",
+      "data": {}
+    },
+    "Risk Engine": {
+      "status": "ok",
+      "message": "MOCK \u2014 Skipped (syntax-only validation)",
+      "data": {}
+    },
+    "Hummingbot API": {
+      "status": "ok",
+      "message": "MOCK \u2014 Skipped (syntax-only validation)",
+      "data": {}
+    },
+    "Freqtrade API": {
+      "status": "ok",
+      "message": "MOCK \u2014 Skipped (syntax-only validation)",
+      "data": {}
+    },
+    "OctoBot UI": {
+      "status": "ok",
+      "message": "MOCK \u2014 Skipped (syntax-only validation)",
+      "data": {}
+    }
+  },
+  "passed": true
+}
