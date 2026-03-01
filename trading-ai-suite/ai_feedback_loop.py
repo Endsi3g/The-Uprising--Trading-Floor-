@@ -19,42 +19,55 @@ class AIFeedbackLoop:
         
     def _load_stats(self):
         if TRADING_STATS_FILE.exists():
-            with open(TRADING_STATS_FILE, "r") as f:
-                return json.load(f)
-        return {"total_trades": 0, "win_rate": 0.0, "avg_profit": 0.0, "recent_losses": 0}
+            try:
+                with open(TRADING_STATS_FILE, "r") as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.error(f"Error loading stats: {e}")
+        return {"total_trades": 0, "win_rate": 0.0, "avg_profit": 0.0, "recent_losses": 0, "max_drawdown": 0.0}
 
     def analyze_logs(self):
-        """Mock log analysis - in production this would parse Hummingbot/Freqtrade CSVs."""
-        logger.info("Scanning trading logs for performance metrics...")
-        # Simulate finding a pattern of high volatility losses
-        self.stats["recent_losses"] += 1
-        self.stats["total_trades"] += 1
+        """Analyzes performance metrics to identify improvement areas."""
+        logger.info("Analyzing trading performance...")
+        self.stats = self._load_stats() # Refresh stats
+        
+        # In a real scenario, we'd also parse actual execution logs here.
+        perf_summary = (
+            f"Win Rate: {self.stats.get('win_rate', 0)*100:.1f}%, "
+            f"Drawdown: {self.stats.get('max_drawdown', 0)*100:.1f}%"
+        )
+        logger.info(f"Performance Summary: {perf_summary}")
         
     def tune_prompt(self):
-        """Generates a hardware-optimized system prompt based on performance."""
-        logger.info("Tuning AI system prompt based on results...")
+        """Generates an optimized system prompt based on performance data."""
+        logger.info("Tuning AI system prompt based on metrics...")
         
-        base_prompt = "You are a Senior Quantitative Trader."
+        base_prompt = "You are a Senior Quantitative Trader for 'The Uprising'."
+        win_rate = self.stats.get('win_rate', 0.5)
+        drawdown = self.stats.get('max_drawdown', 0.0)
         
-        if self.stats["recent_losses"] > 2:
-            improvement = " CRITICAL: Market volatility is high. Prioritize Capital Preservation over aggressive gains. Increase risk thresholds."
+        directives = []
+        if drawdown > 0.10:
+            directives.append("URGENT: Max drawdown exceeded 10%. Switch to DEFENSIVE mode. Stop all high-risk arbitrage. Prioritize USDT preservation.")
+        elif win_rate < 0.45:
+            directives.append("ADVISORY: Win rate is below 45%. Tighten entry criteria. Require stronger trend confirmation before execution.")
         else:
-            improvement = " Performance is stable. Focus on identifying micro-arbitrage opportunities with high confidence."
-            
-        final_prompt = base_prompt + improvement
+            directives.append("OPTIMAL: Performance is stable. Identify high-alpha opportunities and maintain balanced portfolio distribution.")
+
+        final_prompt = f"{base_prompt} { ' '.join(directives) } Ensure execution remains logic-driven and emotion-free."
         
         with open(AI_SYSTEM_PROMPT_FILE, "w") as f:
             f.write(final_prompt)
         
-        logger.info(f"New system prompt deployed: {final_prompt[:50]}...")
+        logger.info(f"New system prompt deployed (Win Rate: {win_rate*100:.1f}%)")
 
     def run(self):
-        logger.info("AI Feedback Loop active.")
+        logger.info("AI Feedback Loop started.")
         while True:
             self.analyze_logs()
             self.tune_prompt()
-            # Run every hour in production, every minute for demo
-            time.sleep(60)
+            # In production this might run every 4 hours. For demo, every 30s.
+            time.sleep(30)
 
 if __name__ == "__main__":
     loop = AIFeedbackLoop()
