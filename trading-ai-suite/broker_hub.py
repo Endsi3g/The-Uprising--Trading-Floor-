@@ -7,12 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import ccxt.async_support as ccxt
-try:
-    import mock_data
-except ImportError:
-    from . import mock_data
-
-USE_MOCK_DATA = os.getenv("USE_MOCK_DATA", "false").lower() == "true"
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -125,11 +119,11 @@ async def health_check():
 @app.get("/balances")
 async def get_aggregated_balances():
     """Recupere les balances de tous les exchanges connectes."""
-    if USE_MOCK_DATA:
-        return mock_data.get_mock_balances()
-
     if not exchanges:
-        return {"warning": "Aucun exchange configure. Verifiez votre fichier .env"}
+        raise HTTPException(
+            status_code=503, 
+            detail="Aucun exchange configure. Verifiez vos cles API dans le fichier .env"
+        )
 
     tasks = []
     exchange_names = list(exchanges.keys())
@@ -142,7 +136,8 @@ async def get_aggregated_balances():
     aggregated = {}
     for name, res in zip(exchange_names, results):
         if isinstance(res, Exception):
-            aggregated[name] = {"error": str(res)}
+            logger.error(f"Failed to fetch balance for {name}: {res}")
+            aggregated[name] = {"error": "Connection failed"}
         else:
             clean_balance = {k: v for k, v in res.get('total', {}).items() if v > 0}
             aggregated[name] = clean_balance
@@ -160,16 +155,13 @@ async def get_ticker(symbol: str, exchange: str):
         ticker = await exchanges[exchange].fetch_ticker(symbol)
         return ticker
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Ticker fetch error for {symbol} on {exchange}: {e}")
+        raise HTTPException(status_code=502, detail=f"Exchange connectivity issue: {str(e)}")
 
 
 @app.get("/tickers")
 async def get_multiple_tickers(exchange: str, symbols: str = "BTC/USDT,ETH/USDT,SOL/USDT"):
     """Recupere les tickers de plusieurs symboles d'un coup."""
-    if USE_MOCK_DATA:
-        symbol_list = [s.strip() for s in symbols.split(",")]
-        return mock_data.get_mock_tickers(symbol_list)
-
     if exchange not in exchanges:
         raise HTTPException(status_code=400, detail=f"Exchange {exchange} non configure")
 
@@ -186,7 +178,8 @@ async def get_multiple_tickers(exchange: str, symbols: str = "BTC/USDT,ETH/USDT,
                 "low": ticker.get("low"),
             }
         except Exception as e:
-            results[symbol] = {"error": str(e)}
+            logger.warning(f"Failed to fetch ticker for {symbol}: {e}")
+            results[symbol] = {"error": "Unavailable"}
 
     return results
 

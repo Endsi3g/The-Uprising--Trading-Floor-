@@ -6,7 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.0.0] — 2026-03-01
+
+### Added
+
+- **Desktop Application**: Electron wrapper for native Windows (.exe) and macOS (.dmg) installers.
+- **Build Orchestrator**: `build-desktop.py` script for one-command multi-platform packaging.
+- **E2E Dashboard Test**: `test_dashboard_e2e.py` verifies all backend services are in production mode.
+- **Production `.env.example`**: Complete template with all required API keys and service URLs.
+
+### Changed
+
+- **PRODUCTION MODE ENFORCED**: All services (`broker_hub`, `news_hub`, `ai_service`) now reject mock data.
+- **Mock Data Removed**: `USE_MOCK_DATA` flag and `mock_data` imports fully eliminated from all services.
+- **AI Service Rewrite**: Consolidated endpoints, proper error propagation, and Ollama health verification.
+- **BrokerHub Hardening**: Returns HTTP 503 when no exchanges are configured instead of an empty response.
+- **NewsHub Hardening**: Returns empty list instead of placeholder text when scraping fails.
+
+### Removed
+
+- Mock data fallback paths from `broker_hub.py`, `news_hub.py`, and `ai_service.py`.
+
+---
+
 ## [0.3.0] — 2026-03-01
+
 
 ### Added
 

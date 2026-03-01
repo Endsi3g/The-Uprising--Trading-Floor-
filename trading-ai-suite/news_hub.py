@@ -5,12 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 from contextlib import asynccontextmanager
 import os
-try:
-    import mock_data
-except ImportError:
-    from . import mock_data
-
-USE_MOCK_DATA = os.getenv("USE_MOCK_DATA", "false").lower() == "true"
 
 
 @asynccontextmanager
@@ -61,9 +55,6 @@ async def health_check():
 @app.get("/news")
 async def get_crypto_news(symbol: str = "BTC", limit: int = 10) -> List[Dict]:
     """Scrape les news depuis CoinTelegraph et CoinDesk sans API payante."""
-    if USE_MOCK_DATA:
-        return mock_data.get_mock_news(symbol)[:limit]
-
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
@@ -124,7 +115,7 @@ async def get_crypto_news(symbol: str = "BTC", limit: int = 10) -> List[Dict]:
         print(f"⚠️ CoinDesk scraping failed: {e}")
 
     if not news_list:
-        return [{"title": f"Aucune news specifique pour {symbol} trouvee.", "sentiment": 0, "source": "N/A"}]
+        return []
 
     return news_list[:limit]
 
