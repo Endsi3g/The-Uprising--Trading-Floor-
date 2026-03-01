@@ -9,6 +9,12 @@ from contextlib import asynccontextmanager
 # Configuration
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434/api/generate")
 PRIMARY_MODEL = "deepseek-r1:latest"
+try:
+    import mock_data
+except ImportError:
+    from . import mock_data
+
+USE_MOCK_DATA = os.getenv("USE_MOCK_DATA", "false").lower() == "true"
 
 # --- Lifespan ---
 @asynccontextmanager
@@ -58,6 +64,13 @@ async def get_ai_summary(req: AnalysisRequest):
     """
     Genere un resume AI base sur les donnees de marche et news.
     """
+    if USE_MOCK_DATA:
+        return {
+            "status": "success", 
+            "model_used": "mock-decider-v1", 
+            "ai_decision": mock_data.get_mock_ai_decision(req.symbol)
+        }
+
     available_models = await get_available_models()
 
     if not available_models:
@@ -109,6 +122,12 @@ async def get_ai_summary(req: AnalysisRequest):
 @app.get("/health")
 async def health_check():
     """Health check — verifie la connexion Ollama et la disponibilite du modele."""
+    if USE_MOCK_DATA:
+        return {
+            "status": "ok",
+            "mode": "mock",
+            "service": "ai-service"
+        }
     try:
         is_ready = await check_model_availability(PRIMARY_MODEL)
         models = await get_available_models()
