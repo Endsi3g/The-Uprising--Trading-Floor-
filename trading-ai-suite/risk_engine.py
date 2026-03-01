@@ -1,5 +1,7 @@
 import os
 import json
+import httpx
+import asyncio
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,12 +9,15 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from typing import Optional
 
-# Risk Constants (Based on Aggressive Profile with Guardrails)
-MAX_DAILY_LOSS_PCT = 0.02   # 2% ($100 on $5000 total / $10 on $500 live)
-MAX_TRADE_LOSS_PCT = 0.01   # 1% ($5 on $500 live)
-CIRCUIT_BREAKER_PCT = 0.05  # 5% ($25 on $500 live) 24h total
-COOLDOWN_HOURS = 4
+# Configuration
+INITIAL_CAPITAL = float(os.getenv("INITIAL_CAPITAL", 500.0))
+ALERT_HUB_URL = os.getenv("ALERT_HUB_URL", "http://alert-hub:8005/alerts")
 
+# Risk Constants
+MAX_DAILY_LOSS_PCT = 0.02
+MAX_TRADE_LOSS_PCT = 0.01
+CIRCUIT_BREAKER_PCT = 0.05
+COOLDOWN_HOURS = 4
 
 class RiskEngine:
     def __init__(self, initial_capital=500.0):
@@ -24,93 +29,73 @@ class RiskEngine:
         self.consecutive_losses = 0
         self.trade_history = []
 
-    def check_trade_safety(self, symbol: str, side: str, amount: float, current_pnl: float):
-        """Valide si un trade respecte les limites avant execution."""
+    async def send_alert(self, message: str, severity: str = "WARNING"):
+        """Broadcast alert to Alert Hub."""
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                await client.post(ALERT_HUB_URL, json={
+                    "source": "RiskEngine",
+                    "message": message,
+                    "severity": severity
+                })
+        except Exception as e:
+            print(f"Alert Hub unreachable: {e}")
 
-        # 1. Check Circuit Breaker
+    async def check_trade_safety(self, symbol: str, side: str, amount: float, current_pnl: float):
         if self.is_halted:
-            return False, "⚠️ CIRCUIT BREAKER ACTIVE: Trading halted."
+            return False, "⚠️ CIRCUIT BREAKER ACTIVE"
 
-        # 2. Check Cooldown
         if self.cooldown_until and datetime.now() < self.cooldown_until:
-            remaining = (self.cooldown_until - datetime.now()).seconds // 60
-            return False, f"🕒 COOLDOWN ACTIVE: {remaining}m remaining."
+            return False, "🕒 COOLDOWN ACTIVE"
 
-        # 3. Daily Loss Protection
         daily_loss_limit = self.daily_start_capital * MAX_DAILY_LOSS_PCT
         if self.current_loss >= daily_loss_limit:
             self.is_halted = True
-            return False, f"❌ MAX DAILY LOSS REACHED: {self.current_loss}$ >= {daily_loss_limit}$"
+            msg = f"MAX DAILY LOSS REACHED: {self.current_loss}$"
+            await self.send_alert(msg, "CRITICAL")
+            return False, f"❌ {msg}"
 
-        # 4. Individual Trade Loss Protection
         if current_pnl < -(self.capital * MAX_TRADE_LOSS_PCT):
             self.consecutive_losses += 1
             if self.consecutive_losses >= 3:
                 self.trigger_cooldown()
-            return False, f"⚠️ STOP LOSS TRIGGERED: Trade PnL too low ({current_pnl}$)"
+                await self.send_alert("3 consecutive losses. Cooldown activated.", "WARNING")
+            return False, f"⚠️ STOP LOSS TRIGGERED ({current_pnl}$)"
 
-        # 5. Record trade
         self.trade_history.append({
-            "symbol": symbol,
-            "side": side,
-            "amount": amount,
-            "pnl": current_pnl,
+            "symbol": symbol, "side": side, "amount": amount, "pnl": current_pnl,
             "timestamp": datetime.now().isoformat()
         })
-
-        return True, "✅ Risk Validation Passed."
+        return True, "✅ Risk Validation Passed"
 
     def trigger_cooldown(self):
-        """Active un cooldown obligatoire de 4h."""
         self.cooldown_until = datetime.now() + timedelta(hours=COOLDOWN_HOURS)
         self.consecutive_losses = 0
-        print(f"🛑 3 PERTES CONSECUTIVES: Cooldown de {COOLDOWN_HOURS}h activé.")
 
     def reset_daily(self):
-        """Reset les compteurs au debut de la journée."""
         self.daily_start_capital = self.capital
         self.current_loss = 0.0
         self.is_halted = False
-        print("🌅 Daily Risk Reset.")
 
     def get_status(self) -> dict:
-        """Retourne l'état complet du Risk Engine."""
         return {
             "capital": self.capital,
-            "daily_start_capital": self.daily_start_capital,
-            "current_loss": self.current_loss,
             "is_halted": self.is_halted,
-            "cooldown_until": self.cooldown_until.isoformat() if self.cooldown_until else None,
-            "consecutive_losses": self.consecutive_losses,
-            "max_daily_loss_pct": MAX_DAILY_LOSS_PCT,
-            "max_trade_loss_pct": MAX_TRADE_LOSS_PCT,
-            "circuit_breaker_pct": CIRCUIT_BREAKER_PCT,
-            "cooldown_hours": COOLDOWN_HOURS,
-            "recent_trades": self.trade_history[-10:]  # Last 10 trades
+            "cooldown_active": bool(self.cooldown_until and datetime.now() < self.cooldown_until),
+            "recent_trades": self.trade_history[-5:]
         }
 
-
-# --- FastAPI Wrapper ---
-engine = RiskEngine(initial_capital=float(os.getenv("INITIAL_CAPITAL", "500.0")))
-
+engine = RiskEngine(initial_capital=INITIAL_CAPITAL)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(f"🛡️ Risk Engine starting with capital: ${engine.capital}")
+    print(f"🛡️ Risk Engine online (Capital: ${engine.capital})")
+    await engine.send_alert("Risk Engine has started and is monitoring the floor.", "INFO")
     yield
-    print("👋 Risk Engine shutting down.")
-
+    print("👋 Risk Engine offline")
 
 app = FastAPI(title="Risk Engine API", lifespan=lifespan)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class TradeCheckRequest(BaseModel):
     symbol: str
@@ -118,34 +103,20 @@ class TradeCheckRequest(BaseModel):
     amount: float
     current_pnl: float
 
-
 @app.get("/health")
-async def health_check():
+async def health():
     return {"status": "ok", "service": "risk-engine", "is_halted": engine.is_halted}
-
 
 @app.get("/risk/status")
 async def get_risk_status():
-    """Retourne l'état complet du Risk Engine."""
     return engine.get_status()
-
 
 @app.post("/risk/check")
 async def check_trade(req: TradeCheckRequest):
-    """Valide si un trade est autorisé selon les limites de risque."""
-    allowed, message = engine.check_trade_safety(req.symbol, req.side, req.amount, req.current_pnl)
+    allowed, message = await engine.check_trade_safety(req.symbol, req.side, req.amount, req.current_pnl)
     return {"allowed": allowed, "message": message}
-
 
 @app.post("/risk/reset")
 async def reset_daily_risk():
-    """Reset manuel des compteurs journaliers."""
     engine.reset_daily()
-    return {"status": "reset", "message": "Daily risk counters reset."}
-
-
-@app.post("/risk/update-capital")
-async def update_capital(new_capital: float):
-    """Met a jour le capital de reference."""
-    engine.capital = new_capital
-    return {"status": "updated", "new_capital": new_capital}
+    return {"status": "reset"}

@@ -160,6 +160,30 @@ services:
     networks:
       - trading-net
 
+  # Centralized Alerting Gateway
+  alert-hub:
+    image: python:3.11-slim
+    container_name: alert-hub
+    volumes:
+      - ./alert_hub.py:/app/alert_hub.py
+    working_dir: /app
+    environment:
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    command: >
+      sh -c "pip install fastapi httpx uvicorn && uvicorn alert_hub:app --host 0.0.0.0 --port 8005"
+    ports:
+      - "8005:8005"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - trading-net
+
 networks:
   trading-net:
     driver: bridge
