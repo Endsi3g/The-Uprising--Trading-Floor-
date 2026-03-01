@@ -5,24 +5,30 @@ import { useDashboardStore } from "@/store/dashboardStore";
 import LayoutControl from "@/components/layout/LayoutControl";
 
 export default function Home() {
-  const chartLayout = useDashboardStore((state) => state.chartLayout);
+  const { gridLayout } = useDashboardStore();
 
-  if (chartLayout === '1x1') {
+  if (gridLayout === '1x1') {
     return (
       <div className="w-full h-full bg-[#131722] p-1 relative">
-         <LayoutControl />
-         <TradingChart className="bg-[#131722] border border-[#2a2e39] rounded" />
+         <TradingChart symbol="BTC/USDT" containerId="chart_main" />
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-1 bg-[#2a2e39] p-1 relative">
-      <LayoutControl />
-      <TradingChart className="bg-[#131722] rounded" />
-      <TradingChart className="bg-[#131722] rounded" />
-      <TradingChart className="bg-[#131722] rounded" />
-      <TradingChart className="bg-[#131722] rounded" />
+    <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-2 bg-[#131722] p-1 relative">
+      <div className="border border-[#2a2e39] rounded overflow-hidden shadow-xl">
+        <TradingChart symbol="BTC/USDT" containerId="chart_1" />
+      </div>
+      <div className="border border-[#2a2e39] rounded overflow-hidden shadow-xl">
+        <TradingChart symbol="ETH/USDT" containerId="chart_2" />
+      </div>
+      <div className="border border-[#2a2e39] rounded overflow-hidden shadow-xl">
+        <TradingChart symbol="SOL/USDT" containerId="chart_3" />
+      </div>
+      <div className="border border-[#2a2e39] rounded overflow-hidden shadow-xl">
+        <TradingChart symbol="BNB/USDT" containerId="chart_4" />
+      </div>
     </div>
   );
 }

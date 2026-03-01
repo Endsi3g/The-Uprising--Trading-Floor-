@@ -61,4 +61,12 @@ body {
     width: 100vw;
     overflow: hidden;
   }
+
+  .glow {
+    box-shadow: 0 0 15px rgba(41, 98, 255, 0.4);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 15px rgba(8, 153, 129, 0.4);
+  }
 }

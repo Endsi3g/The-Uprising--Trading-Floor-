@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: "Advanced Automated Trading Dashboard",
 };
 
+import Navbar from "@/components/layout/Navbar";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,22 +24,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={cn(inter.className, "bg-[#131722] text-[#d1d4dc] selection:bg-[#2962ff]/30 h-screen w-screen overflow-hidden")}>
         <div className="tv-grid">
-          {/* Top Navbar */}
-          <header className="col-span-3 border-b border-[#2a2e39] bg-[#1e222d] flex items-center px-4 z-20">
-            <div className="font-bold text-lg text-[#2962ff] mr-8 tracking-tighter">AI SUITE</div>
-            <div className="flex gap-4 text-[11px] font-bold text-[#787b86] uppercase tracking-wider">
-              {/* Note: The store will be imported in a client wrapper later, but we will make these links static in layout for now and put toggles inside page.tsx or a separate component */}
-              <span className="cursor-pointer hover:text-white transition-colors border-b-2 border-[#2962ff] pb-3 pt-3">Dashboard</span>
-              <span className="cursor-pointer hover:text-white transition-colors pb-3 pt-3">Strategy Finder</span>
-            </div>
-            
-            <div className="ml-auto flex items-center gap-4">
-               <span className="text-[10px] text-[#787b86] font-bold tracking-widest mr-2 border-r border-[#2a2e39] pr-4">
-                  PRO MODE
-               </span>
-               <button className="bg-[#2962ff] hover:bg-[#2962ff]/80 text-white text-[10px] font-bold px-3 py-1 rounded transition-colors uppercase tracking-widest shadow-[0_0_10px_rgba(41,98,255,0.3)]">Deploy All</button>
-            </div>
-          </header>
+          <Navbar />
 
           {/* Left Icon Sidebar */}
           <aside className="border-r border-[#2a2e39] bg-[#1e222d] flex flex-col items-center py-4 gap-6 z-20">
