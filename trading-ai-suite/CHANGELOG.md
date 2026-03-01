@@ -6,9 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.0] — 2026-03-01
+
+### Added
+
+- **Alert Hub Refinement**: Robust background broadcasting to Discord/Telegram via FastAPI `BackgroundTasks`.
+- **Reporting Automation**: `performance_recap.py` script for AI-generated weekly PnL reports.
+- **AI Service Expansion**: New `/ai/analyze` endpoint for generic quantitative market analysis.
+- **Master Test Suite**: Comprehensive E2E system check (`master_test_suite.py`) validating the full flow.
+- **Release Automation**: `release_manager.py` for one-click versioning and GitHub release creation.
+
+### Changed
+
+- **Risk Engine Alerts**: Now sends proactive warnings on single trade stop-losses and critical alerts on consecutive losses.
+- **Improved Logging**: Added structured logging and timestamp formats across all suite services.
+
+### Fixed
+
+- **Connectivity Paths**: Standardized service discovery URLs using internal Docker networking.
+
+---
+
 ## [0.2.0] — 2026-03-01
 
 ### Added
+
 - **Risk Engine API**: Full FastAPI wrapper exposing `/risk/status`, `/risk/check`, `/risk/reset`, `/risk/update-capital`
 - **CORS Middleware**: All 4 backend services now allow cross-origin requests from the dashboard
 - **Health Endpoints**: `/health` on all services (broker-hub, news-hub, ai-service, risk-engine)
@@ -26,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **BotManager in Layout**: Component is now actually rendered in the dashboard layout
 
 ### Fixed
+
 - **`ai_service.py`**: `check_model_availability()` was undefined — caused health endpoint crash
 - **`ai_sentinel.py`**: `__main__` called non-existent `analyze_market()` — now calls `unified_analysis()`
 - **Deprecated APIs**: Replaced `@app.on_event("startup/shutdown")` with modern `lifespan` context manager in all services

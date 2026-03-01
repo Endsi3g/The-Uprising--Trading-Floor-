@@ -39,6 +39,10 @@ class AnalysisRequest(BaseModel):
     market_context: Dict[str, Any]
     news_context: Dict[str, Any]
 
+class GenericAnalysisRequest(BaseModel):
+    context: str
+    instruction: str
+
 
 async def get_available_models() -> List[str]:
     """Recupere la liste de tous les modeles telecharges dans Ollama."""
@@ -118,6 +122,50 @@ async def get_ai_summary(req: AnalysisRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de connexion Ollama: {str(e)}")
 
+
+@app.post("/ai/analyze")
+async def analyze_generic(req: GenericAnalysisRequest):
+    """
+    Genere une analyse AI generique basee sur un contexte et une instruction.
+    """
+    if USE_MOCK_DATA:
+        return {
+            "status": "success", 
+            "model_used": "mock-analyzer-v1", 
+            "response": f"MOCK ANALYSIS: Based on {len(req.context)} chars of context, the recommendation is to CONTINUE scaling."
+        }
+
+    available_models = await get_available_models()
+    if not available_models:
+        raise HTTPException(status_code=503, detail="Ollama models unavailable")
+
+    model_to_use = PRIMARY_MODEL if PRIMARY_MODEL in available_models else available_models[0]
+
+    prompt = f"""
+    CONTEXT:
+    {req.context}
+    
+    INSTRUCTION:
+    {req.instruction}
+    
+    Reponds comme un Expert Trader Quantitatif. Sois precis et direct.
+    """
+
+    payload = {
+        "model": model_to_use,
+        "prompt": prompt,
+        "stream": False
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(OLLAMA_URL, json=payload)
+            if response.status_code == 200:
+                return {"status": "success", "model_used": model_to_use, "response": response.json().get("response", "")}
+            else:
+                raise HTTPException(status_code=response.status_code, detail="Ollama error")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 async def health_check():

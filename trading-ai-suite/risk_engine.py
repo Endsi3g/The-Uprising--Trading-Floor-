@@ -57,9 +57,10 @@ class RiskEngine:
 
         if current_pnl < -(self.capital * MAX_TRADE_LOSS_PCT):
             self.consecutive_losses += 1
+            await self.send_alert(f"⚠️ STOP LOSS TRIGGERED for single trade: {current_pnl}$", "WARNING")
             if self.consecutive_losses >= 3:
                 self.trigger_cooldown()
-                await self.send_alert("3 consecutive losses. Cooldown activated.", "WARNING")
+                await self.send_alert("🔴 CRITICAL: 3 consecutive losses. Cooldown activated for 4 hours.", "CRITICAL")
             return False, f"⚠️ STOP LOSS TRIGGERED ({current_pnl}$)"
 
         self.trade_history.append({

@@ -1,12 +1,16 @@
 import os
 import httpx
 import logging
-from fastapi import FastAPI, Request, HTTPException
+import asyncio
+from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger("AlertHub")
 
 app = FastAPI(title="Alert Hub Gateway")
@@ -25,37 +29,71 @@ class Alert(BaseModel):
     severity: str  # 'INFO', 'WARNING', 'CRITICAL'
     payload: Optional[dict] = None
 
-@app.post("/alerts")
-async def receive_alert(alert: Alert):
-    logger.info(f"Received alert from {alert.source}: {alert.message}")
-    
-    # 1. Discord Broadcast
+async def broadcast_discord(alert: Alert):
     discord_url = os.getenv("DISCORD_WEBHOOK_URL")
-    if discord_url:
+    if not discord_url:
+        return
+    
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        emoji = {"INFO": "ℹ️", "WARNING": "⚠️", "CRITICAL": "🚨"}.get(alert.severity, "🔔")
+        payload = {
+            "content": f"{emoji} **{alert.severity}** from `{alert.source}`\n> {alert.message}"
+        }
         try:
-            async with httpx.AsyncClient() as client:
-                payload = {"content": f"🚨 **{alert.severity}** from {alert.source}\n{alert.message}"}
-                await client.post(discord_url, json=payload)
+            resp = await client.post(discord_url, json=payload)
+            resp.raise_for_status()
+            logger.info(f"Discord broadcast success for {alert.source}")
         except Exception as e:
-            logger.error(f"Discord fail: {e}")
+            logger.error(f"Discord broadcast failed: {e}")
 
-    # 2. Telegram Broadcast
+async def broadcast_telegram(alert: Alert):
     tg_token = os.getenv("TELEGRAM_TOKEN")
     tg_chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    if tg_token and tg_chat_id:
+    if not (tg_token and tg_chat_id):
+        return
+    
+    url = f"https://api.telegram.org/bot{tg_token}/sendMessage"
+    emoji = {"INFO": "ℹ️", "WARNING": "⚠️", "CRITICAL": "🚨"}.get(alert.severity, "🔔")
+    text = f"{emoji} [{alert.severity}] {alert.source}\n{alert.message}"
+    
+    async with httpx.AsyncClient(timeout=10.0) as client:
         try:
-            async with httpx.AsyncClient() as client:
-                url = f"https://api.telegram.org/bot{tg_token}/sendMessage"
-                payload = {"chat_id": tg_chat_id, "text": f"[{alert.severity}] {alert.source}: {alert.message}"}
-                await client.post(url, json=payload)
+            resp = await client.post(url, json={"chat_id": tg_chat_id, "text": text})
+            resp.raise_for_status()
+            logger.info(f"Telegram broadcast success for {alert.source}")
         except Exception as e:
-            logger.error(f"Telegram fail: {e}")
+            logger.error(f"Telegram broadcast failed: {e}")
 
-    return {"status": "broadcasted"}
+@app.post("/alerts")
+async def receive_alert(alert: Alert, background_tasks: BackgroundTasks):
+    logger.info(f"Incoming alert: [{alert.severity}] {alert.source}: {alert.message}")
+    
+    # Broadcast in background to avoid blocking the caller
+    background_tasks.add_task(broadcast_discord, alert)
+    background_tasks.add_task(broadcast_telegram, alert)
+    
+    return {"status": "queued", "source": alert.source}
+
+@app.post("/test-alert")
+async def test_alert(background_tasks: BackgroundTasks):
+    """Utility endpoint to verify connectivity."""
+    test_alert = Alert(
+        source="AlertHub-Internal",
+        message="System connectivity test. If you see this, broadcasting is working.",
+        severity="INFO"
+    )
+    background_tasks.add_task(broadcast_discord, test_alert)
+    background_tasks.add_task(broadcast_telegram, test_alert)
+    return {"status": "test_queued"}
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "alert-hub"}
+    return {
+        "status": "ok", 
+        "service": "alert-hub",
+        "discord_configured": bool(os.getenv("DISCORD_WEBHOOK_URL")),
+        "telegram_configured": bool(os.getenv("TELEGRAM_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"))
+    }
 
 if __name__ == "__main__":
     import uvicorn
