@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Ultimate Unified Entry**: Added `bin/setup-and-start.ps1`, a single command to Install, Configure, Resolve Conflicts, and Launch the entire Trading Floor.
+- **Port Recovery (Windows)**: Hardened automated port 11434 recovery to target both `ollama.exe` and the `ollama app.exe` tray application (to prevent auto-respawn).
+- **Robust Docker Healthchecks**: Replaced fragile `curl`-based healthchecks with native Python `urllib` and built-in `ollama list` checks to support standard slim container images.
 - **Unified Startup (Windows)**: Added `bin/start-suite.ps1` to automate the entire flow: environment setup, Docker backends, and dashboard execution in one command.
 - **Standalone Start (Windows)**: `start.ps1` now automatically detects the Conda environment and runs without manual activation.
 - **Automated Build**: `install.ps1` now handles Cython compilation (`build_ext`) and package linking (`conda develop`) automatically.
