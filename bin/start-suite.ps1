@@ -18,15 +18,16 @@ $dashDir = Join-Path $suiteDir "dashboard"
 Write-Host "`n[0/3] Checking for port conflicts..." -ForegroundColor White
 $portConflict = Get-NetTCPConnection -LocalPort 11434 -ErrorAction SilentlyContinue
 if ($portConflict) {
-    $proc = Get-Process -Id $portConflict.OwningProcess -ErrorAction SilentlyContinue
-    if ($proc.ProcessName -eq "ollama") {
-        Write-Host "CONFLICT: Native Ollama is running on port 11434." -ForegroundColor Yellow
-        Write-Host "Attempting to stop native Ollama to allow Docker stack to start..." -ForegroundColor Gray
-        Stop-Process -Id $proc.Id -Force
-        Start-Sleep -Seconds 2
-    }
-    else {
-        Write-Host "WARNING: Port 11434 is occupied by $($proc.ProcessName). Docker may fail." -ForegroundColor Yellow
+    Write-Host "CONFLICT: Native Ollama is running on port 11434." -ForegroundColor Yellow
+    Write-Host "Attempting to stop all native Ollama processes to allow Docker stack to start..." -ForegroundColor Gray
+    # Aggressively kill Ollama processes and children
+    taskkill /F /IM ollama.exe /T 2>$null
+    Start-Sleep -Seconds 3
+    
+    # Check if still occupied
+    if (Get-NetTCPConnection -LocalPort 11434 -ErrorAction SilentlyContinue) {
+        Write-Host "ERROR: Could not clear port 11434. Please close Ollama manually." -ForegroundColor Red
+        exit 1
     }
 }
 
