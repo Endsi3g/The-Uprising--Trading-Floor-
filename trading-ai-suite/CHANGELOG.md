@@ -6,13 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [1.1.0] — 2026-03-01
+## [1.1.0] — 2026-03-02
 
 ### Added
 
-- **Standalone Start (Windows)**: `start.ps1` now automatically detects the Conda environment and runs without requiring manual activation.
+- **Unified Startup (Windows)**: Added `bin/start-suite.ps1` to automate the entire floor: environment setup, Docker backends, and dashboard execution in one command.
+- **Standalone Start (Windows)**: `start.ps1` now automatically detects the Conda environment and runs without manual activation.
 - **Automated Build**: `install.ps1` now handles Cython compilation (`build_ext`) and package linking (`conda develop`) automatically.
 - **DLL Runtime Reliability**: Switched to `conda run` execution to ensure system library paths are correctly loaded on Windows.
+
+### Success
+
+- **NATIVE WINDOWS HUB**: Verified success starting Hummingbot via CLI and fully integrated `trading-ai-suite` from a clean Windows install.
+- **ZERO-CONFIG RUN**: All components now start natively without requiring manual path configurations or environment variables.
 
 ### Fixed
 
