@@ -35,6 +35,7 @@ Write-Host "`n[2/5] Hardening Port 11434 (Ollama)..." -ForegroundColor White
 $portConflict = Get-NetTCPConnection -LocalPort 11434 -ErrorAction SilentlyContinue
 if ($portConflict) {
     Write-Host "CONFLICT: Port 11434 is occupied. Terminating blocking processes..." -ForegroundColor Yellow
+    taskkill /F /IM "ollama app.exe" /T 2>$null
     taskkill /F /IM ollama.exe /T 2>$null
     Start-Sleep -Seconds 3
     if (Get-NetTCPConnection -LocalPort 11434 -ErrorAction SilentlyContinue) {

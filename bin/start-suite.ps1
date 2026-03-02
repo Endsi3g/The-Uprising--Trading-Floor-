@@ -21,6 +21,7 @@ if ($portConflict) {
     Write-Host "CONFLICT: Native Ollama is running on port 11434." -ForegroundColor Yellow
     Write-Host "Attempting to stop all native Ollama processes to allow Docker stack to start..." -ForegroundColor Gray
     # Aggressively kill Ollama processes and children
+    taskkill /F /IM "ollama app.exe" /T 2>$null
     taskkill /F /IM ollama.exe /T 2>$null
     Start-Sleep -Seconds 3
     
