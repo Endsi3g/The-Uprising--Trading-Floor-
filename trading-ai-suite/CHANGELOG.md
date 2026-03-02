@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **Unified Startup (Windows)**: Added `bin/start-suite.ps1` to automate the entire floor: environment setup, Docker backends, and dashboard execution in one command.
+- **Unified Startup (Windows)**: Added `bin/start-suite.ps1` to automate the entire flow: environment setup, Docker backends, and dashboard execution in one command.
 - **Standalone Start (Windows)**: `start.ps1` now automatically detects the Conda environment and runs without manual activation.
 - **Automated Build**: `install.ps1` now handles Cython compilation (`build_ext`) and package linking (`conda develop`) automatically.
 - **DLL Runtime Reliability**: Switched to `conda run` execution to ensure system library paths are correctly loaded on Windows.
