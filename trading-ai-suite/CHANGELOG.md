@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.0] — 2026-03-01
+
+### Added
+
+- **Standalone Start (Windows)**: `start.ps1` now automatically detects the Conda environment and runs without requiring manual activation.
+- **Automated Build**: `install.ps1` now handles Cython compilation (`build_ext`) and package linking (`conda develop`) automatically.
+- **DLL Runtime Reliability**: Switched to `conda run` execution to ensure system library paths are correctly loaded on Windows.
+
+### Fixed
+
+- **Windows Import Error**: Moved Unix-only module imports (`grp`, `pwd`) behind conditional checks for native support.
+- **Path Detection**: Improved robustness of environment path extraction to handle non-standard directory layouts.
+- **Documentation**: Corrected repository directory targets in `README.md` installation guides.
+- **News Hub**: Fixed undefined `news` variable crash in sentiment analysis service.
+- **E2E Testing**: Added null-response protection to browser UI tests.
+
+---
+
 ## [1.0.0] — 2026-03-01
 
 ### Added

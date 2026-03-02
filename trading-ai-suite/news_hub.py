@@ -1,10 +1,11 @@
+import os
+from contextlib import asynccontextmanager
+from typing import Dict, List
+
 import httpx
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict
-from contextlib import asynccontextmanager
-import os
 
 
 @asynccontextmanager
@@ -148,6 +149,7 @@ def calculate_weighted_sentiment(text: str) -> float:
 @app.get("/sentiment")
 async def get_sentiment_summary(symbol: str) -> Dict:
     """Combine les news pour donner un score de sentiment global."""
+    news = await get_crypto_news(symbol)
     if not news:
         return {"symbol": symbol, "sentiment": "Neutral", "score": 0.5, "news_count": 0, "sources": []}
 

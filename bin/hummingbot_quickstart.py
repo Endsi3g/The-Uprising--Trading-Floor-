@@ -2,10 +2,8 @@
 
 import argparse
 import asyncio
-import grp
 import logging
 import os
-import pwd
 import subprocess
 from pathlib import Path
 from typing import Coroutine, List
@@ -68,6 +66,13 @@ class CmdlineParser(argparse.ArgumentParser):
 
 
 def autofix_permissions(user_group_spec: str):
+    if os.name == 'nt':
+        logging.getLogger().warning("Auto-set permissions is not supported on Windows.")
+        return
+
+    import grp
+    import pwd
+
     uid, gid = [sub_str for sub_str in user_group_spec.split(':')]
 
     uid = int(uid) if uid.isnumeric() else pwd.getpwnam(uid).pw_uid
